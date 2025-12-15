@@ -4,6 +4,8 @@
 
 
 
+
+# Игровой цикл
 import pygame
 import sys
 pygame.init()
@@ -47,7 +49,6 @@ def next_dragon():
     dragon_index = (dragon_index + 1) % len(dragons)
     hp = MAX_HP
     dragon_rect = dragons[dragon_index].get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
-# Игровой цикл
 running = True
 while running:
     screen.fill(WHITE)
