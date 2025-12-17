@@ -1,0 +1,127 @@
+import pygame
+import sys
+
+pygame.init()
+
+# Окно
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Dragon Clicker")
+
+clock = pygame.time.Clock()
+
+# Цвета
+WHITE = (255, 255, 255)
+RED = (200, 50, 50)
+GREEN = (50, 200, 50)
+BLACK = (0, 0, 0)
+
+# Шрифт
+font = pygame.font.SysFont("arial", 24)
+
+# Загрузка изображений и звуков
+dragon_image = pygame.image.load("dragon.png")  # Убедитесь, что файл dragon.png существует в вашей папке
+dragon_image = pygame.transform.scale(dragon_image, (200, 200))  # Изменение размера изображения
+
+hit_sound = pygame.mixer.Sound("hit_sound.wav")  # Убедитесь, что файл hit_sound.wav существует в вашей папке
+
+# Драконы (цвета вместо картинок)
+dragons = [
+    (200, 50, 50),
+    (50, 200, 50),
+    (50, 50, 200)
+]
+dragon_index = 0
+
+# Характеристики
+MAX_HP = 100_000
+hp = MAX_HP
+damage = 100
+clicks = 0
+
+# Дракон
+dragon_rect = pygame.Rect(300, 200, 200, 200)
+hit_animation = 0
+
+# Курсор-меч
+pygame.mouse.set_visible(False)
+
+def draw_sword(pos):
+    pygame.draw.line(screen, BLACK, pos, (pos[0], pos[1] - 30), 4)
+    pygame.draw.line(screen, BLACK, (pos[0] - 5, pos[1] - 20), (pos[0] + 5, pos[1] - 20), 4)
+
+def draw_hp_bar():
+    bar_width = 400
+    hp_ratio = hp / MAX_HP
+    pygame.draw.rect(screen, RED, (200, 50, bar_width, 25))
+    pygame.draw.rect(screen, GREEN, (200, 50, bar_width * hp_ratio, 25))
+
+def next_dragon():
+    global dragon_index, hp
+    dragon_index = (dragon_index + 1) % len(dragons)
+    hp = MAX_HP
+
+def game_over():
+    screen.fill(WHITE)
+    game_over_text = font.render("Игра окончена! Нажмите ESC для выхода.", True, BLACK)
+    screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
+    pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+
+# Игровой цикл
+running = True
+while running:
+    screen.fill(WHITE)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if dragon_rect.collidepoint(event.pos):
+                hp -= damage
+                clicks += 1
+                hit_animation = 5
+                hit_sound.play()  # Воспроизведение звука удара
+
+                if hp <= 0:
+                    next_dragon()
+
+    # Анимация удара
+    if hit_animation > 0:
+        offset = 5
+        hit_animation -= 1
+    else:
+        offset = 0
+
+    # Дракон
+    screen.blit(dragon_image, dragon_rect.move(offset, 0))
+
+    # HP бар
+    draw_hp_bar()
+
+    # Текст
+    hp_text = font.render(f"HP: {hp}", True, BLACK)
+    click_text = font.render(f"Клики: {clicks}", True, BLACK)
+
+    screen.blit(hp_text, (200, 80))
+    screen.blit(click_text, (20, 20))
+
+    # Меч
+    draw_sword(pygame.mouse.get_pos())
+
+    # Проверка на окончание игры
+    if hp <= 0 and dragon_index == len(dragons) - 1:
+        game_over()
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+sys.exit()
+
+
